@@ -30,6 +30,7 @@ class DockerFrameworkClient:
         if container is None:
             raise TypeError("Provided argument is not of type docker.models.containers.Container")
         container_state = container.attrs['State']
+        sam = 5
         return container_state == 'running'
 
     def does_container_exist(self, container_name: str) -> bool:
