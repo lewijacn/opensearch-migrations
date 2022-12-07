@@ -9,11 +9,12 @@ jobs:
         python-version: ['3.10']
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ./upgrades
     steps:
-      - name: Checkout Upgrades Directory
-        uses: Bhacaz/checkout-files@v2
-        with:
-          files: upgrades
+      - name: Checkout Repository
+        uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
