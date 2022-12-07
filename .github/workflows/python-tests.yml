@@ -10,17 +10,17 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Checkout Upgrades Directory
+        uses: Bhacaz/checkout-files@v2
+        with:
+          files: upgrades
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Dependencies
         run: |
-          cd upgrades
           python -m pip install -r requirements.txt
       - name: Run Tests
         run: |
-          cd upgrades
           python -m pytest tests/
