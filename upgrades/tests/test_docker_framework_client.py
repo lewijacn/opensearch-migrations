@@ -26,7 +26,7 @@ def test_WHEN_create_container_called_THEN_executes_normally(mock_sdk_client):
     assert mock_sdk_client.containers.get.called
     assert mock_sdk_client.images.get.called
     assert mock_sdk_client.containers.run.called
-    expected_calls = [mock.call('opensearchproject/sample:1.0.0', name='test-node1', network=None, ports={'9200': '9200'},
+    expected_calls = [mock.call('opensearchproject/sample:1.1.0', name='test-node1', network=None, ports={'9200': '9200'},
                                 volumes={'bind': '/test'}, ulimits=[{'Name': 'memlock', 'Soft': -1, 'Hard': -1}], detach=True,
                                 environment={'cluster.name': 'test-cluster'})]
     assert expected_calls == mock_sdk_client.containers.run.call_args_list
