@@ -54,7 +54,7 @@ class DockerFrameworkClient:
         After performing some basic sanity checks, this function will create and start a Docker container with the supplied parameters
 
         :param image: The docker image to run, i.e. opensearchproject/opensearch:2.4.0
-        :param container_name: The docker container name
+        :param container_name: The docker container name used
         :param network_name: The existing network this container will connect to at creation time, i.e. opensearch-net
         :param ports: A dictionary of ports to bind inside container, i.e. {'9200': '9200', '9600': '9600'}
         :param volumes: A dictionary of volumes to mount, i.e. {'vol1': {'bind': '/usr/share/opensearch/data', 'mode': 'rw'}}
