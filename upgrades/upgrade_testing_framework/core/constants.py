@@ -1,4 +1,5 @@
 EXIT_TYPE_ABORT = 'Aborted'
+TEST = 'Test'
 EXIT_TYPE_FAILURE = 'Failed'
 EXIT_TYPE_FAILURE_UNEXPECTED = 'FailedUnexpected'
 EXIT_TYPE_FAILURE_UNHANDLED = 'FailedUnhandled'
