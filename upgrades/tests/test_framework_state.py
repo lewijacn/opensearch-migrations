@@ -4,7 +4,7 @@ import pytest
 from upgrade_testing_framework.core.framework_state import FrameworkState, get_initial_state
 from upgrade_testing_framework.core.workspace_wrangler import WorkspaceWrangler
 
-def test_WHEN_FrameworkState_object_used_THEN_works_expected():
+def test_WHEN_FrameworkState_object_used_THEN_works_expected_good():
     # Run our test
     state = FrameworkState({})
     state.set('Fingon', 'Son of Fingolfin')
