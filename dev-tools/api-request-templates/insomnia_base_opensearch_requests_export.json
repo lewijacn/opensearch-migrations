@@ -14,7 +14,7 @@
 		"method": "POST",
 		"body": {
 			"mimeType": "application/json",
-			"text": "{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Prisoners\", \"year\": 2013 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Avatar\", \"year\": 2009 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Inception\", \"year\": 2010 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Prisoners2\", \"year\": 2014 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Avatar2\", \"year\": 2010 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Inception2\", \"year\": 2011 }\n"
+			"text": "{ \"create\": { \"_index\": \"movies2\" } }\n{ \"title\": \"Prisoners\", \"year\": 2013 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Avatar\", \"year\": 2009 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Inception\", \"year\": 2010 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Prisoners2\", \"year\": 2014 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Avatar2\", \"year\": 2010 }\n{ \"create\": { \"_index\": \"movies\" } }\n{ \"title\": \"Inception2\", \"year\": 2011 }\n"
 		},
 		"parameters": [],
 		"headers": [{
