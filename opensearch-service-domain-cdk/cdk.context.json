@@ -1,0 +1,12 @@
+{
+  "domainName": "cdk-os-service-domain",
+  "engineVersion": "OS_1.3",
+  "dataNodeType": "r6g.large.search",
+  "dataNodeCount": 1,
+  "dedicatedMasterNodeType": "r6g.large.search",
+  "dedicatedMasterNodeCount": 3,
+  "warmNodeType": "ultrawarm1.medium.search",
+  "warmNodeCount": 2,
+  "coldStorageEnabled": false,
+  "zoneAwarenessAvailabilityZoneCount": 1
+}
