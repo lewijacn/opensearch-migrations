@@ -9,13 +9,10 @@ import {
   SubnetSelection,
   Vpc
 } from "aws-cdk-lib/aws-ec2";
-import {CustomEndpointOptions, Domain, EngineVersion, TLSSecurityPolicy} from "aws-cdk-lib/aws-opensearchservice";
+import {Domain, EngineVersion, TLSSecurityPolicy} from "aws-cdk-lib/aws-opensearchservice";
 import {RemovalPolicy, SecretValue, Stack, StackProps} from "aws-cdk-lib";
 import {IKey, Key} from "aws-cdk-lib/aws-kms";
-import {IRole, PolicyStatement, Role} from "aws-cdk-lib/aws-iam";
-import {CognitoOptions} from "aws-cdk-lib/aws-opensearchservice/lib/domain";
-import {Certificate, ICertificate} from "aws-cdk-lib/aws-certificatemanager";
-import {HostedZone, IHostedZone} from "aws-cdk-lib/aws-route53";
+import {PolicyStatement} from "aws-cdk-lib/aws-iam";
 import {ILogGroup, LogGroup} from "aws-cdk-lib/aws-logs";
 import {Secret} from "aws-cdk-lib/aws-secretsmanager";
 
@@ -37,15 +34,9 @@ export interface opensearchServiceDomainCdkProps extends StackProps{
   readonly fineGrainedManagerUserARN?: string,
   readonly fineGrainedManagerUserName?: string,
   readonly fineGrainedManagerUserSecretManagerKeyARN?: string,
-  readonly cognitoIdentityPoolId?: string,
-  readonly cognitoRoleARN?: string,
-  readonly cognitoUserPoolId?:  string,
   readonly nodeToNodeEncryptionEnabled?: boolean,
   readonly encryptionAtRestEnabled?: boolean,
   readonly encryptionAtRestKmsKeyARN?: string,
-  readonly customEndpointDomainName?: string,
-  readonly customEndpointCertificateARN?: string,
-  readonly customEndpointHostedZoneId?: string,
   readonly enforceHTTPS?: boolean,
   readonly tlsSecurityPolicy?: TLSSecurityPolicy,
   readonly ebsEnabled?: boolean,
@@ -64,7 +55,6 @@ export interface opensearchServiceDomainCdkProps extends StackProps{
   readonly vpcId?: string,
   readonly vpcSubnetIds?: string[],
   readonly vpcSecurityGroupIds?: string[],
-  readonly enableVersionUpgrade?: boolean,
   readonly domainRemovalPolicy?: RemovalPolicy
 }
 
@@ -81,15 +71,6 @@ export class OpensearchServiceDomainCdkStack extends Stack {
 
     const managerUserSecret: SecretValue|undefined = props.fineGrainedManagerUserSecretManagerKeyARN ?
         Secret.fromSecretCompleteArn(this, "managerSecret", props.fineGrainedManagerUserSecretManagerKeyARN).secretValue : undefined
-
-    const cognitoRole: IRole|undefined = props.cognitoRoleARN ?
-        Role.fromRoleArn(this, "cognitoRole", props.cognitoRoleARN) : undefined
-
-    const endpointCert: ICertificate|undefined = props.customEndpointCertificateARN ?
-        Certificate.fromCertificateArn(this, "endpointCert", props.customEndpointCertificateARN) : undefined
-
-    const hostedZone: IHostedZone|undefined = props.customEndpointHostedZoneId ?
-        HostedZone.fromHostedZoneId(this, "hostedZone", props.customEndpointHostedZoneId) : undefined
 
     const appLG: ILogGroup|undefined = props.appLogGroup && props.appLogEnabled ?
         LogGroup.fromLogGroupArn(this, "appLogGroup", props.appLogGroup) : undefined
@@ -127,25 +108,6 @@ export class OpensearchServiceDomainCdkStack extends Stack {
       vpcSecurityGroups = securityGroupArray
     }
 
-    // Map structures that require specific fields
-    let cognitoOptions: CognitoOptions|undefined = undefined
-    if (props.cognitoIdentityPoolId && cognitoRole && props.cognitoUserPoolId) {
-      cognitoOptions = {
-        identityPoolId: props.cognitoIdentityPoolId,
-        role: cognitoRole,
-        userPoolId: props.cognitoUserPoolId
-      }
-    }
-
-    let endpointOptions: CustomEndpointOptions|undefined = undefined
-    if (props.customEndpointDomainName) {
-      endpointOptions = {
-        domainName: props.customEndpointDomainName,
-        certificate: endpointCert,
-        hostedZone: hostedZone
-      }
-    }
-
     const domain = new Domain(this, 'Domain', {
       version: props.version,
       domainName: props.domainName,
@@ -169,13 +131,11 @@ export class OpensearchServiceDomainCdkStack extends Stack {
         masterUserName: props.fineGrainedManagerUserName,
         masterUserPassword: managerUserSecret
       },
-      cognitoDashboardsAuth: cognitoOptions,
       nodeToNodeEncryption: props.nodeToNodeEncryptionEnabled,
       encryptionAtRest: {
         enabled: props.encryptionAtRestEnabled,
         kmsKey: earKmsKey
       },
-      customEndpoint: endpointOptions,
       enforceHttps: props.enforceHTTPS,
       tlsSecurityPolicy: props.tlsSecurityPolicy,
       ebs: {
@@ -198,7 +158,6 @@ export class OpensearchServiceDomainCdkStack extends Stack {
       vpc: vpc,
       vpcSubnets: vpcSubnets,
       securityGroups: vpcSecurityGroups,
-      enableVersionUpgrade: props.enableVersionUpgrade,
       removalPolicy: props.domainRemovalPolicy
     });
   }

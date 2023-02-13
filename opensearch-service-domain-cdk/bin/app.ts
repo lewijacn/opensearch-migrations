@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
+import {App} from 'aws-cdk-lib';
 import {StackComposer} from "../lib/stack-composer";
 
-const app = new cdk.App();
-const stage = "dev"
+const app = new App();
+const stage = process.env.CDK_DEPLOYMENT_STAGE
 const account = process.env.CDK_DEFAULT_ACCOUNT
 const region = process.env.CDK_DEFAULT_REGION
 new StackComposer(app, {

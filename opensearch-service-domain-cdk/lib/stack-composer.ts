@@ -25,12 +25,6 @@ export class StackComposer {
         const fineGrainedManagerUserARN = getContextForType('fineGrainedManagerUserARN', 'string')
         const fineGrainedManagerUserName = getContextForType('fineGrainedManagerUserName', 'string')
         const fineGrainedManagerUserSecretManagerKeyARN = getContextForType('fineGrainedManagerUserSecretManagerKeyARN', 'string')
-        const cognitoIdentityPoolId = getContextForType('cognitoIdentityPoolId', 'string')
-        const cognitoRoleARN = getContextForType('cognitoRoleARN', 'string')
-        const cognitoUserPoolId = getContextForType('cognitoUserPoolId', 'string')
-        const customEndpointDomainName = getContextForType('customEndpointDomainName', 'string')
-        const customEndpointCertificateARN = getContextForType('customEndpointCertificateARN', 'string')
-        const customEndpointHostedZoneId = getContextForType('customEndpointHostedZoneId', 'string')
         const enforceHTTPS = getContextForType('enforceHTTPS', 'boolean')
         const noneToNodeEncryptionEnabled = getContextForType('nodeToNodeEncryptionEnabled', 'boolean')
         const encryptionAtRestEnabled = getContextForType('encryptionAtRestEnabled', 'boolean')
@@ -50,18 +44,7 @@ export class StackComposer {
         const vpcId = getContextForType('vpcId', 'string')
         const vpcSecurityGroupIds = getContextForType('vpcSecurityGroupIds', 'object')
         const vpcSubnetIds = getContextForType('vpcSubnetIds', 'object')
-        const enableVersionUpgrade = getContextForType('enableVersionUpgrade', 'boolean')
 
-        // Check for partially configured features
-        if ((cognitoIdentityPoolId || cognitoRoleARN || cognitoUserPoolId) &&
-            !(cognitoIdentityPoolId && cognitoRoleARN && cognitoUserPoolId)) {
-            throw new Error("All Cognito values [cognitoIdentityPoolId, cognitoRoleARN, cognitoUserPoolId] are " +
-                "required if using Cognito authentication")
-        }
-
-        if ((customEndpointCertificateARN || customEndpointHostedZoneId) && !(customEndpointDomainName)) {
-            throw new Error("The 'customEndpointDomainName' value is required when configuring a custom endpoint")
-        }
 
         const engineVersion = getContextForType('engineVersion', 'string')
         if (engineVersion.startsWith("OS_")) {
@@ -81,19 +64,19 @@ export class StackComposer {
         const tlsSecurityPolicyName = getContextForType('tlsSecurityPolicy', 'string')
         const tlsSecurityPolicy: TLSSecurityPolicy|undefined = tlsSecurityPolicyName ? TLSSecurityPolicy[tlsSecurityPolicyName as keyof typeof TLSSecurityPolicy] : undefined
         if (tlsSecurityPolicyName && !tlsSecurityPolicy) {
-            throw new Error("Provided tlsSecurityPolicy does not match a selectable option, i.e. 'TLS_1_2'")
+            throw new Error("Provided tlsSecurityPolicy does not match a selectable option, for reference https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_opensearchservice.TLSSecurityPolicy.html")
         }
 
         const ebsVolumeTypeName = getContextForType('ebsVolumeType', 'string')
         const ebsVolumeType: EbsDeviceVolumeType|undefined = ebsVolumeTypeName ? EbsDeviceVolumeType[ebsVolumeTypeName as keyof typeof EbsDeviceVolumeType] : undefined
         if (ebsVolumeTypeName && !ebsVolumeType) {
-            throw new Error("Provided ebsVolumeType does not match a selectable option, i.e. 'GP3'")
+            throw new Error("Provided ebsVolumeType does not match a selectable option, for reference https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ec2.EbsDeviceVolumeType.html")
         }
 
         const domainRemovalPolicyName = getContextForType('domainRemovalPolicy', 'string')
         const domainRemovalPolicy = domainRemovalPolicyName ? RemovalPolicy[domainRemovalPolicyName as keyof typeof RemovalPolicy] : undefined
         if (domainRemovalPolicyName && !domainRemovalPolicy) {
-            throw new Error("Provided domainRemovalPolicy does not match a selectable option, i.e. 'RETAIN'")
+            throw new Error("Provided domainRemovalPolicy does not match a selectable option, for reference https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.RemovalPolicy.html")
         }
 
         const opensearchStack = new OpensearchServiceDomainCdkStack(scope, 'opensearchDomainStack', {
@@ -113,12 +96,6 @@ export class StackComposer {
             fineGrainedManagerUserARN: fineGrainedManagerUserARN,
             fineGrainedManagerUserName: fineGrainedManagerUserName,
             fineGrainedManagerUserSecretManagerKeyARN: fineGrainedManagerUserSecretManagerKeyARN,
-            cognitoIdentityPoolId: cognitoIdentityPoolId,
-            cognitoRoleARN: cognitoRoleARN,
-            cognitoUserPoolId: cognitoUserPoolId,
-            customEndpointDomainName: customEndpointDomainName,
-            customEndpointCertificateARN: customEndpointCertificateARN,
-            customEndpointHostedZoneId: customEndpointHostedZoneId,
             enforceHTTPS: enforceHTTPS,
             tlsSecurityPolicy: tlsSecurityPolicy,
             nodeToNodeEncryptionEnabled: noneToNodeEncryptionEnabled,
@@ -140,14 +117,13 @@ export class StackComposer {
             vpcId: vpcId,
             vpcSecurityGroupIds: vpcSecurityGroupIds,
             vpcSubnetIds: vpcSubnetIds,
-            enableVersionUpgrade: enableVersionUpgrade,
             domainRemovalPolicy: domainRemovalPolicy,
             ...props,
         });
 
         function getContextForType(optionName: string, expectedType: string): any {
             const option = scope.node.tryGetContext(optionName)
-            // Falsy check modified to not include values we want to retain
+            // Filter out invalid or missing options by setting undefined (empty strings, null, undefined, NaN)
             if (option !== false && option !== 0 && !option) {
                 return undefined
             }
@@ -162,12 +138,12 @@ export class StackComposer {
             }
             // Values provided by the cdk.context.json should be of the desired type
             if (typeof option !== expectedType) {
-                console.warn(`Type provided by cdk.context.json for ${optionName} was ${typeof option} but expected ${expectedType}`)
+                throw new Error(`Type provided by cdk.context.json for ${optionName} was ${typeof option} but expected ${expectedType}`)
             }
             return option
         }
 
-        function parseAccessPolicies(jsonObject: any): PolicyStatement[] {
+        function parseAccessPolicies(jsonObject: { [x: string]: any; }): PolicyStatement[] {
             let accessPolicies: PolicyStatement[] = []
             const statements = jsonObject['Statement']
             for (let i = 0; i < statements.length; i++) {

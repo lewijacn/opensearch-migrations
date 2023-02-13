@@ -15,12 +15,6 @@
   "fineGrainedManagerUserARN": "",
   "fineGrainedManagerUserName": "",
   "fineGrainedManagerUserSecretManagerKeyARN": "",
-  "cognitoIdentityPoolId": "",
-  "cognitoRoleARN": "",
-  "cognitoUserPoolId": "",
-  "customEndpointDomainName": "",
-  "customEndpointCertificateARN": "",
-  "customEndpointHostedZoneId": "",
   "enforceHTTPS": "",
   "tlsSecurityPolicy": "",
   "ebsEnabled": "",
@@ -42,6 +36,5 @@
   "vpcId": "",
   "vpcSecurityGroupIds": "",
   "vpcSubnetIds": "",
-  "enableVersionUpgrade": "",
   "domainRemovalPolicy": ""
 }

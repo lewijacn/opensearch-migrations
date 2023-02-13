@@ -10,19 +10,25 @@ Also ensure you have configured the desired [AWS credentials](https://docs.aws.a
 Before deploying your Domain stack you should fill in any desired context parameters that will dictate the composition
 of your OpenSearch Service Domain
 
-This can be accomplished by simply filling in the values in the `cdk.context.json`
+This can be accomplished by providing these options in the `cdk.context.json`
 
-As well as by passing these context options as options in the CDK CLI
+As well as by passing the context options you want to change as options in the CDK CLI
 ```
 cdk deploy --c domainName='cdk-os-service-domain' --c engineVersion="OS_1_3_6" --c dataNodeType="r6g.large.search" --c dataNodeCount=1
 ```
-* Note that these context parameters can also be passed to `cdk synth` and `cdk bootstrap` commands
+* Note that these context parameters can also be passed to `cdk synth` and `cdk bootstrap` commands to simulate similar scenarios
+
+Depending on your use-case, you may choose to provide options from both the `cdk.context.json` and the CDK CLI, in which case
+the options passed by the CLI will overwrite the existing option you have in the `cdk.context.json`, if that option is defined there
 
 
 ### Configuration Options
 
 The available configuration options are listed below. The vast majority of these options do not need to be provided, with only `domainName` and `engineVersion` being required.
 All non-required options can be removed from the `cdk.context.json` (or not passed by the CLI) or provided as an empty string `""`, in each of these cases the option will be allocated with the CDK Domain default value
+
+Users are encouraged to customize the deployment by changing the CDK TypeScript as needed. The configuration-by-context option that is depicted here is primarily provided for testing/development purposes,
+and users may find it easier to adjust the TS here rather than say wrangling a complex JSON object through a context option
 
 Additional context on some of these options, can also be found in the Domain construct [documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_opensearchservice.Domain.html)
 
@@ -46,12 +52,6 @@ Additional context on some of these options, can also be found in the Domain con
 | fineGrainedManagerUserARN                 | false    | string       | "arn:aws:iam::123456789123:user/test-user"                                                                                                                                                                                   | Fine grained access control also requires nodeToNodeEncryptionEnabled and encryptionAtRestEnabled to be enabled. <br/> Either fineGrainedMasterUserARN or fineGrainedMasterUserName should be enabled, but not both. |
 | fineGrainedManagerUserName                | false    | string       | "admin"                                                                                                                                                                                                                      |                                                                                                                                                                                                                      |
 | fineGrainedManagerUserSecretManagerKeyARN | false    | string       | "arn:aws:secretsmanager:us-east-1:123456789123:secret:master-user-os-pass-123abc"                                                                                                                                            |                                                                                                                                                                                                                      |
-| cognitoIdentityPoolId                     | false    | string       | "us-east-1:123abc45-7e09-4f32-a343-1cb57f4700f7"                                                                                                                                                                             |                                                                                                                                                                                                                      |
-| cognitoRoleARN                            | false    | string       | "arn:aws:iam::123456789123:role/Cognito_testidentitypool_Auth_Role"                                                                                                                                                          |                                                                                                                                                                                                                      |
-| cognitoUserPoolId                         | false    | string       | "us-east-1_123abc456"                                                                                                                                                                                                        |                                                                                                                                                                                                                      |
-| customEndpointDomainName                  | false    | string       | "example.com"                                                                                                                                                                                                                |                                                                                                                                                                                                                      |
-| customEndpointCertificateARN              | false    | string       | "arn:aws:acm:us-east-1:123456789123:certificate/12345678-1234-1234-1234-123456789012"                                                                                                                                        |                                                                                                                                                                                                                      |
-| customEndpointHostedZoneId                | false    | string       | "Z09411642VVTRWNBSI52M"                                                                                                                                                                                                      |                                                                                                                                                                                                                      |
 | enforceHTTPS                              | false    | boolean      | true                                                                                                                                                                                                                         |                                                                                                                                                                                                                      |
 | tlsSecurityPolicy                         | false    | string       | "TLS_1_2"                                                                                                                                                                                                                    |                                                                                                                                                                                                                      |
 | ebsEnabled                                | false    | boolean      | true                                                                                                                                                                                                                         | Some instance types (i.e. r6gd) require that EBS be disabled                                                                                                                                                         |
@@ -73,38 +73,27 @@ Additional context on some of these options, can also be found in the Domain con
 | vpcId                                     | false    | string       | "vpc-123456789abcdefgh"                                                                                                                                                                                                      |                                                                                                                                                                                                                      |
 | vpcSecurityGroupIds                       | false    | string array | ["sg-123456789abcdefgh", "sg-223456789abcdefgh"]                                                                                                                                                                             |                                                                                                                                                                                                                      |
 | vpcSubnetIds                              | false    | string array | ["subnet-123456789abcdefgh", "subnet-223456789abcdefgh"]                                                                                                                                                                     |                                                                                                                                                                                                                      |
-| enableVersionUpgrade                      | false    | boolean      | true                                                                                                                                                                                                                         |                                                                                                                                                                                                                      |
 | domainRemovalPolicy                       | false    | string       | "RETAIN"                                                                                                                                                                                                                     |                                                                                                                                                                                                                      |
 
-#### Future options
-These options are not currently achievable by the CDK Domain construct alone, although possible through CloudFormation or the AWS SDK, and are planned to be added to this code base
-```
-"coldStorageEnabled": "X",
-"anonymousAuthEnabled": "X",
-"anonymousAuthDisableDate": "X",
-"samlEnabled": "X",
-"samlIdentityProviderEntityId": "X",
-"samlIdentityProviderMetadataContent": "X",
-"samlMasterBackendRole": "X",
-"samlMasterUserName": "X",
-"samlRolesKey": "X",
-"samlSessionTimeoutMinutes": "X",
-"samlSubjectKey": "X",
-"ebsThroughput": "X",
-"tags": "X",
-```
-
-
-Some configuration options (listed below) which enable/disable specific features do not exist in the current native CDK Domain construct. These options are inferred based on the presence or absence of related fields (i.e. if dedicatedMasterNodeCount is set to 1 it is 
+Some configuration options available in other solutions (listed below) which enable/disable specific features do not exist in the current native CDK Domain construct. These options are inferred based on the presence or absence of related fields (i.e. if dedicatedMasterNodeCount is set to 1 it is 
 inferred that dedicated master nodes should be enabled). These options are normally disabled by default, allowing for this inference.
 ```
 "dedicatedMasterNodeEnabled": "X",
 "warmNodeEnabled": "X",
 "fineGrainedAccessControlEnabled": "X",
-"internalUserDatabaseEnabled": "X",
-"cognitoEnabled": "X",
-"customEndpointEnabled": "X",
+"internalUserDatabaseEnabled": "X"
 ```
+
+### Tearing down CDK Stack
+To remove the stack which gets created during deployment, which contains our created resources like our Domain and any other resources created from enabled 
+features (such as a CloudWatch log group), we can execute
+```
+cdk destroy
+```
+Note that the default retention policy for the OpenSearch Domain is to RETAIN this resource when the stack is deleted, and in order to delete the Domain
+on stack deletion the `domainRemovalPolicy` would need to be set to `DESTROY`. Otherwise, the Domain can be manually deleted through the AWS console or
+through other means such as the AWS CLI.
+
 ### Useful CDK commands
 
 * `npm run build`   compile typescript to js
