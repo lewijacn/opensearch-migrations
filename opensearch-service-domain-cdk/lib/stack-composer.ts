@@ -1,16 +1,19 @@
-import {Construct} from 'constructs';
-import {RemovalPolicy, StackProps} from 'aws-cdk-lib';
+import {Construct} from "constructs";
+import {RemovalPolicy, Stack, StackProps} from "aws-cdk-lib";
 import {OpensearchServiceDomainCdkStack} from "./opensearch-service-domain-cdk-stack";
 import {EngineVersion, TLSSecurityPolicy} from "aws-cdk-lib/aws-opensearchservice";
 import {EbsDeviceVolumeType} from "aws-cdk-lib/aws-ec2";
 import {PolicyStatement} from "aws-cdk-lib/aws-iam";
+import * as defaultValuesJson from "../default-values.json"
 
 export class StackComposer {
+    public stacks: Stack[] = [];
 
     constructor(scope: Construct, props: StackProps) {
 
         let version: EngineVersion
 
+        const defaultValues: { [x: string]: (string); } = defaultValuesJson
         const domainName = getContextForType('domainName', 'string')
         const dataNodeType = getContextForType('dataNodeType', 'string')
         const dataNodeCount = getContextForType('dataNodeCount', 'number')
@@ -18,40 +21,31 @@ export class StackComposer {
         const dedicatedManagerNodeCount = getContextForType('dedicatedManagerNodeCount', 'number')
         const warmNodeType = getContextForType('warmNodeType', 'string')
         const warmNodeCount = getContextForType('warmNodeCount', 'number')
-        const zoneAwarenessEnabled = getContextForType('zoneAwarenessEnabled', 'boolean')
-        const zoneAwarenessAvailabilityZoneCount = getContextForType('zoneAwarenessAvailabilityZoneCount', 'number')
-        const advancedOptions = getContextForType('advancedOptions', 'object')
         const useUnsignedBasicAuth = getContextForType('useUnsignedBasicAuth', 'boolean')
         const fineGrainedManagerUserARN = getContextForType('fineGrainedManagerUserARN', 'string')
         const fineGrainedManagerUserName = getContextForType('fineGrainedManagerUserName', 'string')
         const fineGrainedManagerUserSecretManagerKeyARN = getContextForType('fineGrainedManagerUserSecretManagerKeyARN', 'string')
         const enforceHTTPS = getContextForType('enforceHTTPS', 'boolean')
-        const noneToNodeEncryptionEnabled = getContextForType('nodeToNodeEncryptionEnabled', 'boolean')
-        const encryptionAtRestEnabled = getContextForType('encryptionAtRestEnabled', 'boolean')
-        const encryptionAtRestKmsKeyARN = getContextForType("encryptionAtRestKmsKeyARN", 'string')
         const ebsEnabled = getContextForType('ebsEnabled', 'boolean')
         const ebsIops = getContextForType('ebsIops', 'number')
         const ebsVolumeSize = getContextForType('ebsVolumeSize', 'number')
+        const encryptionAtRestEnabled = getContextForType('encryptionAtRestEnabled', 'boolean')
+        const encryptionAtRestKmsKeyARN = getContextForType("encryptionAtRestKmsKeyARN", 'string')
         const loggingAppLogEnabled = getContextForType('loggingAppLogEnabled', 'boolean')
         const loggingAppLogGroupARN = getContextForType('loggingAppLogGroupARN', 'string')
-        const loggingAuditLogEnabled = getContextForType('loggingAuditLogEnabled', 'boolean')
-        const loggingAuditLogGroupARN = getContextForType('loggingAuditLogGroupARN', 'string')
-        const loggingSlowIndexLogEnabled = getContextForType('loggingSlowIndexLogEnabled', 'boolean')
-        const loggingSlowIndexLogGroupARN = getContextForType('loggingSlowIndexLogGroupARN', 'string')
-        const loggingSlowSearchLogEnabled = getContextForType('loggingSlowSearchLogEnabled', 'boolean')
-        const loggingSlowSearchLogGroupARN = getContextForType('loggingSlowSearchLogGroupARN', 'string')
-        const snapshotAutomatedStartHour = getContextForType('snapshotAutomatedStartHour', 'number')
+        const noneToNodeEncryptionEnabled = getContextForType('nodeToNodeEncryptionEnabled', 'boolean')
         const vpcId = getContextForType('vpcId', 'string')
-        const vpcSecurityGroupIds = getContextForType('vpcSecurityGroupIds', 'object')
-        const vpcSubnetIds = getContextForType('vpcSubnetIds', 'object')
 
+        if (!domainName) {
+            throw new Error("Domain name is not present and is a required field")
+        }
 
         const engineVersion = getContextForType('engineVersion', 'string')
-        if (engineVersion.startsWith("OS_")) {
+        if (engineVersion && engineVersion.startsWith("OS_")) {
             // Will accept a period delimited version string (i.e. 1.3) and return a proper EngineVersion
             version = EngineVersion.openSearch(engineVersion.substring(3))
         }
-        else if (engineVersion.startsWith("ES_")) {
+        else if (engineVersion && engineVersion.startsWith("ES_")) {
             version = EngineVersion.elasticsearch(engineVersion.substring(3))
         }
         else {
@@ -82,47 +76,43 @@ export class StackComposer {
         const opensearchStack = new OpensearchServiceDomainCdkStack(scope, 'opensearchDomainStack', {
             version: version,
             domainName: domainName,
-            advancedOptions: advancedOptions,
-            accessPolicies: accessPolicies,
             dataNodeInstanceType: dataNodeType,
             dataNodes: dataNodeCount,
             dedicatedManagerNodeType: dedicatedManagerNodeType,
             dedicatedManagerNodeCount: dedicatedManagerNodeCount,
             warmInstanceType: warmNodeType,
             warmNodes: warmNodeCount,
-            zoneAwarenessEnabled: zoneAwarenessEnabled,
-            zoneAwarenessAvailabilityZoneCount: zoneAwarenessAvailabilityZoneCount,
+            accessPolicies: accessPolicies,
             useUnsignedBasicAuth: useUnsignedBasicAuth,
             fineGrainedManagerUserARN: fineGrainedManagerUserARN,
             fineGrainedManagerUserName: fineGrainedManagerUserName,
             fineGrainedManagerUserSecretManagerKeyARN: fineGrainedManagerUserSecretManagerKeyARN,
             enforceHTTPS: enforceHTTPS,
             tlsSecurityPolicy: tlsSecurityPolicy,
-            nodeToNodeEncryptionEnabled: noneToNodeEncryptionEnabled,
-            encryptionAtRestEnabled: encryptionAtRestEnabled,
-            encryptionAtRestKmsKeyARN: encryptionAtRestKmsKeyARN,
             ebsEnabled: ebsEnabled,
             ebsIops: ebsIops,
             ebsVolumeSize: ebsVolumeSize,
             ebsVolumeType: ebsVolumeType,
+            encryptionAtRestEnabled: encryptionAtRestEnabled,
+            encryptionAtRestKmsKeyARN: encryptionAtRestKmsKeyARN,
             appLogEnabled: loggingAppLogEnabled,
             appLogGroup: loggingAppLogGroupARN,
-            auditLogEnabled: loggingAuditLogEnabled,
-            auditLogGroup: loggingAuditLogGroupARN,
-            slowIndexLogEnabled: loggingSlowIndexLogEnabled,
-            slowIndexLogGroup: loggingSlowIndexLogGroupARN,
-            slowSearchLogEnabled: loggingSlowSearchLogEnabled,
-            slowSearchLogGroup: loggingSlowSearchLogGroupARN,
-            snapshotAutomatedStartHour: snapshotAutomatedStartHour,
+            nodeToNodeEncryptionEnabled: noneToNodeEncryptionEnabled,
             vpcId: vpcId,
-            vpcSecurityGroupIds: vpcSecurityGroupIds,
-            vpcSubnetIds: vpcSubnetIds,
             domainRemovalPolicy: domainRemovalPolicy,
             ...props,
         });
 
+        this.stacks.push(opensearchStack)
+
         function getContextForType(optionName: string, expectedType: string): any {
             const option = scope.node.tryGetContext(optionName)
+
+            // If no context is provided and a default value exists, use it
+            if (option === undefined && defaultValues[optionName]) {
+                return defaultValues[optionName]
+            }
+
             // Filter out invalid or missing options by setting undefined (empty strings, null, undefined, NaN)
             if (option !== false && option !== 0 && !option) {
                 return undefined
