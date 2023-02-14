@@ -20,9 +20,9 @@ cdk deploy --c domainName='cdk-os-service-domain' --c engineVersion="OS_1_3_6" -
 * Note that these context parameters can also be passed to `cdk synth` and `cdk bootstrap` commands to simulate similar scenarios
 
 Depending on your use-case, you may choose to provide options from both the `cdk.context.json` and the CDK CLI, in which case it is important to know the precedence level for context values. The below order shows these levels with values placed in the `cdk.context.json` having the most importance
-1. Created `cdk.context.json` in top level directory
+1. Created `cdk.context.json` in the same directory as this README
 2. CDK CLI passed context values
-3. Existing `default-values.json` in top level directory
+3. Existing `default-values.json` in the same directory as this README
 
 
 ### Configuration Options
