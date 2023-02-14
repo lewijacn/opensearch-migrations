@@ -6,11 +6,10 @@ If this is your first time using CDK in this region, will need to `cdk bootstrap
 
 Also ensure you have configured the desired [AWS credentials](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_prerequisites), as these will dictate the region and account used for deployment
 
-A `CDK_DEPLOYMENT_STAGE` environment variable should also be set to assist in naming resources and preventing collisions
+A `CDK_DEPLOYMENT_STAGE` environment variable should also be set to assist in naming resources and preventing collisions. Typically, this would be set to values such as `dev`, `gamma`, or `PROD` and will be used to distinguish AWS resources for a given region and deployment stage. For example the CloudFormation stack may be named like `OpenSearchServiceDomain-dev-us-east-1`
 
 ### Deploying your Domain Stack
-Before deploying your Domain stack you should fill in any desired context parameters that will dictate the composition
-of your OpenSearch Service Domain
+Before deploying your Domain stack you should fill in any desired context parameters that will dictate the composition of your OpenSearch Service Domain
 
 This can be accomplished by providing these options in a `cdk.context.json` file
 
@@ -20,20 +19,17 @@ cdk deploy --c domainName='cdk-os-service-domain' --c engineVersion="OS_1_3_6" -
 ```
 * Note that these context parameters can also be passed to `cdk synth` and `cdk bootstrap` commands to simulate similar scenarios
 
-Depending on your use-case, you may choose to provide options from both the `cdk.context.json` and the CDK CLI, in which case it is important
-to know the precedence level for context values. The below order shows these levels with values placed in the `cdk.context.json` having the most importance
-1. Created `cdk.context.json` in base directory
+Depending on your use-case, you may choose to provide options from both the `cdk.context.json` and the CDK CLI, in which case it is important to know the precedence level for context values. The below order shows these levels with values placed in the `cdk.context.json` having the most importance
+1. Created `cdk.context.json` in top level directory
 2. CDK CLI passed context values
-3. Existing `default-values.json` in base directory
+3. Existing `default-values.json` in top level directory
 
 
 ### Configuration Options
 
-The available configuration options are listed below. The vast majority of these options do not need to be provided, with only `domainName` and `engineVersion` being required.
-All non-required options can be provided as an empty string `""` or simply not included, and in each of these cases the option will be allocated with the CDK Domain default value
+The available configuration options are listed below. The vast majority of these options do not need to be provided, with only `domainName` and `engineVersion` being required. All non-required options can be provided as an empty string `""` or simply not included, and in each of these cases the option will be allocated with the CDK Domain default value
 
-Users are encouraged to customize the deployment by changing the CDK TypeScript as needed. The configuration-by-context option that is depicted here is primarily provided for testing/development purposes,
-and users may find it easier to adjust the TS here rather than say wrangling a complex JSON object through a context option
+Users are encouraged to customize the deployment by changing the CDK TypeScript as needed. The configuration-by-context option that is depicted here is primarily provided for testing/development purposes, and users may find it easier to adjust the TS here rather than say wrangling a complex JSON object through a context option
 
 Additional context on some of these options, can also be found in the Domain construct [documentation](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_opensearchservice.Domain.html)
 
@@ -101,8 +97,7 @@ A template `cdk.context.json` to be used to fill in these values is below:
 }
 
 ```
-Some configuration options available in other solutions (listed below) which enable/disable specific features do not exist in the current native CDK Domain construct. These options are inferred based on the presence or absence of related fields (i.e. if dedicatedMasterNodeCount is set to 1 it is 
-inferred that dedicated master nodes should be enabled). These options are normally disabled by default, allowing for this inference.
+Some configuration options available in other solutions (listed below) which enable/disable specific features do not exist in the current native CDK Domain construct. These options are inferred based on the presence or absence of related fields (i.e. if dedicatedMasterNodeCount is set to 1 it is inferred that dedicated master nodes should be enabled). These options are normally disabled by default, allowing for this inference.
 ```
 "dedicatedMasterNodeEnabled": "X",
 "warmNodeEnabled": "X",
@@ -111,14 +106,11 @@ inferred that dedicated master nodes should be enabled). These options are norma
 ```
 
 ### Tearing down CDK Stack
-To remove the stack which gets created during deployment, which contains our created resources like our Domain and any other resources created from enabled 
-features (such as a CloudWatch log group), we can execute
+To remove the stack which gets created during deployment, which contains our created resources like our Domain and any other resources created from enabled features (such as a CloudWatch log group), we can execute
 ```
 cdk destroy
 ```
-Note that the default retention policy for the OpenSearch Domain is to RETAIN this resource when the stack is deleted, and in order to delete the Domain
-on stack deletion the `domainRemovalPolicy` would need to be set to `DESTROY`. Otherwise, the Domain can be manually deleted through the AWS console or
-through other means such as the AWS CLI.
+Note that the default retention policy for the OpenSearch Domain is to RETAIN this resource when the stack is deleted, and in order to delete the Domain on stack deletion the `domainRemovalPolicy` would need to be set to `DESTROY`. Otherwise, the Domain can be manually deleted through the AWS console or through other means such as the AWS CLI.
 
 ### Useful CDK commands
 
