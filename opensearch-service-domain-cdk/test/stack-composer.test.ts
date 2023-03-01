@@ -47,7 +47,7 @@ test('Test invalid engine version format throws error', () => {
     expect(createStackFunc).toThrowError()
 })
 
-test('Test ES engine version is parsed', () => {
+test('Test ES engine version format is parsed', () => {
 
     const app = new App({
         context: {
@@ -64,7 +64,7 @@ test('Test ES engine version is parsed', () => {
     domainTemplate.resourceCountIs("AWS::OpenSearchService::Domain", 1)
 })
 
-test('Test OS engine version is parsed', () => {
+test('Test OS engine version format is parsed', () => {
 
     const app = new App({
         context: {
@@ -79,6 +79,104 @@ test('Test OS engine version is parsed', () => {
     const domainStack = openSearchStacks.stacks.filter((s) => s.stackName === "opensearchDomainStack")[0]
     const domainTemplate = Template.fromStack(domainStack)
     domainTemplate.resourceCountIs("AWS::OpenSearchService::Domain", 1)
+})
+
+test('Test access policy is parsed for proper array format', () => {
+
+    const app = new App({
+        context: {
+            accessPolicies: {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::123456789123:user/test-user"},"Action":"es:ESHttp*","Resource":"arn:aws:es:us-east-1:123456789123:domain/test-os-domain/*"},
+                    {"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::123456789123:user/test-user2"},"Action":"es:ESHttp*","Resource":"arn:aws:es:us-east-1:123456789123:domain/test-os-domain/*"}]}
+        }
+    })
+
+    const openSearchStacks =  new StackComposer(app, {
+        env: {account: "test-account", region: "us-east-1"}
+    })
+
+    const domainStack = openSearchStacks.stacks.filter((s) => s.stackName === "opensearchDomainStack")[0]
+    const domainTemplate = Template.fromStack(domainStack)
+    // Check that accessPolicies policy is created
+    domainTemplate.resourceCountIs("Custom::OpenSearchAccessPolicy", 1)
+})
+
+test('Test access policy is parsed for proper block format', () => {
+
+    const app = new App({
+        context: {
+            accessPolicies: {"Version":"2012-10-17","Statement":{"Effect":"Allow","Principal":{"AWS":"*"},"Action":"es:ESHttp*","Resource":"arn:aws:es:us-east-1:123456789123:domain/test-os-domain/*"}}
+        }
+    })
+
+    const openSearchStacks =  new StackComposer(app, {
+        env: {account: "test-account", region: "us-east-1"}
+    })
+
+    const domainStack = openSearchStacks.stacks.filter((s) => s.stackName === "opensearchDomainStack")[0]
+    const domainTemplate = Template.fromStack(domainStack)
+    // Check that accessPolicies policy is created
+    domainTemplate.resourceCountIs("Custom::OpenSearchAccessPolicy", 1)
+})
+
+test('Test access policy missing Statement throws error', () => {
+
+    const app = new App({
+        context: {
+            accessPolicies: {"Version":"2012-10-17"}
+        }
+    })
+
+    const createStackFunc = () => new StackComposer(app, {
+        env: {account: "test-account", region: "us-east-1"}
+    })
+
+    expect(createStackFunc).toThrowError()
+})
+
+test('Test access policy with empty Statement array throws error', () => {
+
+    const app = new App({
+        context: {
+            accessPolicies: {"Version":"2012-10-17", "Statement":[]}
+        }
+    })
+
+    const createStackFunc = () => new StackComposer(app, {
+        env: {account: "test-account", region: "us-east-1"}
+    })
+
+    expect(createStackFunc).toThrowError()
+})
+
+test('Test access policy with empty Statement block throws error', () => {
+
+    const app = new App({
+        context: {
+            accessPolicies: {"Version":"2012-10-17", "Statement":{}}
+        }
+    })
+
+    const createStackFunc = () => new StackComposer(app, {
+        env: {account: "test-account", region: "us-east-1"}
+    })
+
+    expect(createStackFunc).toThrowError()
+})
+
+test('Test access policy with improper Statement throws error', () => {
+
+    const app = new App({
+        context: {
+            // Missing required fields in Statement
+            accessPolicies: {"Version":"2012-10-17", "Statement":[{"Effect": "Allow"}]}
+        }
+    })
+
+    const createStackFunc = () => new StackComposer(app, {
+        env: {account: "test-account", region: "us-east-1"}
+    })
+
+    expect(createStackFunc).toThrowError()
 })
 
 test('Test invalid TLS security policy throws error', () => {
