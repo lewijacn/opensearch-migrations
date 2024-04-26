@@ -5,8 +5,10 @@ import {Construct} from "constructs";
 import {join} from "path";
 import {MigrationServiceCore} from "./migration-service-core";
 import {StringParameter} from "aws-cdk-lib/aws-ssm";
-import {StreamingSourceType} from "../streaming-source-type";
+import {StreamingSourceType} from "../models/streaming-source-type";
 import {createMSKProducerIAMPolicies} from "../common-utilities";
+import {Secret} from "aws-cdk-lib/aws-secretsmanager";
+import {SecretValue} from "aws-cdk-lib";
 
 
 export interface CaptureProxyESProps extends StackPropsExt {
@@ -53,6 +55,12 @@ export class CaptureProxyESStack extends MigrationServiceCore {
             dnsName: "capture-proxy-es",
             port: 19200
         }
+
+        new Secret(this, "demoSourceUserSecret", {
+            secretName: `demo-source-secret-${props.stage}-${props.defaultDeployId}`,
+            // This is unsafe and strictly for ease of use in a demo mode setup
+            secretStringValue: SecretValue.unsafePlainText("admin")
+        })
 
         const servicePolicies = props.streamingSourceType === StreamingSourceType.AWS_MSK ? createMSKProducerIAMPolicies(this, this.region, this.account, props.stage, props.defaultDeployId) : []
 

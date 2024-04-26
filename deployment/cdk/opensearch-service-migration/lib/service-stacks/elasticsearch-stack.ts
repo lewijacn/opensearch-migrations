@@ -5,6 +5,8 @@ import {Construct} from "constructs";
 import {join} from "path";
 import {MigrationServiceCore} from "./migration-service-core";
 import {StringParameter} from "aws-cdk-lib/aws-ssm";
+import {Secret} from "aws-cdk-lib/aws-secretsmanager";
+import {SecretValue} from "aws-cdk-lib";
 
 
 export interface ElasticsearchProps extends StackPropsExt {
@@ -36,6 +38,12 @@ export class ElasticsearchStack extends MigrationServiceCore {
             dnsName: "elasticsearch",
             port: 9200
         }
+
+        new Secret(this, "demoSourceUserSecret", {
+            secretName: `demo-source-secret-${props.stage}-${props.defaultDeployId}`,
+            // This is unsafe and strictly for ease of use in a demo mode setup
+            secretStringValue: SecretValue.unsafePlainText("admin")
+        })
 
         this.createService({
             serviceName: "elasticsearch",

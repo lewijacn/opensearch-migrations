@@ -8,9 +8,10 @@ import {StackPropsExt} from "./stack-composer";
 import {LogGroup, RetentionDays} from "aws-cdk-lib/aws-logs";
 import {NamespaceType} from "aws-cdk-lib/aws-servicediscovery";
 import {StringParameter} from "aws-cdk-lib/aws-ssm";
-import {StreamingSourceType} from "./streaming-source-type";
+import {StreamingSourceType} from "./models/streaming-source-type";
 import {Bucket, BucketEncryption} from "aws-cdk-lib/aws-s3";
 import {parseRemovalPolicy} from "./common-utilities";
+import {validateAndReturnSourceDataProvider, validateAndReturnTargetDataProvider} from "./models/data-provider";
 
 export interface MigrationStackProps extends StackPropsExt {
     readonly vpc: IVpc,
@@ -23,6 +24,15 @@ export interface MigrationStackProps extends StackPropsExt {
     readonly mskBrokerNodeCount?: number,
     readonly mskSubnetIds?: string[],
     readonly mskAZCount?: number,
+    readonly sourceClusterEndpoint?: string,
+    readonly sourceAuthType?: string,
+    readonly sourceAuthUsername?: string,
+    readonly sourceAuthSecret?: string,
+    readonly sourceProviderType?: string,
+    readonly targetAuthType?: string,
+    readonly targetAuthUsername?: string,
+    readonly targetAuthSecret?: string,
+    readonly targetProviderType?: string,
     readonly replayerOutputEFSRemovalPolicy?: string
     readonly artifactBucketRemovalPolicy?: string
 }
@@ -168,6 +178,24 @@ export class MigrationAssistanceStack extends Stack {
         if (props.mskEnablePublicEndpoints && (!props.mskRestrictPublicAccessTo || !props.mskRestrictPublicAccessType)) {
             throw new Error("The 'mskEnablePublicEndpoints' option requires both 'mskRestrictPublicAccessTo' and 'mskRestrictPublicAccessType' options to be provided")
         }
+
+        const targetEndpoint = StringParameter.valueForStringParameter(this, `/migration/${props.stage}/${props.defaultDeployId}/osClusterEndpoint`)
+        
+        const sourceDataProvider = validateAndReturnSourceDataProvider(props.sourceClusterEndpoint, props.sourceAuthType,
+            props.sourceProviderType, props.sourceAuthUsername, props.sourceAuthSecret)
+        const targetDataProvider = validateAndReturnTargetDataProvider(targetEndpoint, props.targetAuthType,
+            props.targetProviderType, props.targetAuthUsername, props.targetAuthSecret)
+        new StringParameter(this, 'SSMParameterSourceDataProvider', {
+            description: 'OpenSearch migration parameter for source cluster data provider details',
+            parameterName: `/migration/${props.stage}/${props.defaultDeployId}/sourceDataProvider`,
+            stringValue: sourceDataProvider.toString()
+        });
+        new StringParameter(this, 'SSMParameterTargetDataProvider', {
+            description: 'OpenSearch migration parameter for target cluster data provider details',
+            parameterName: `/migration/${props.stage}/${props.defaultDeployId}/targetDataProvider`,
+            stringValue: targetDataProvider.toString()
+        });
+        
 
         const bucketRemovalPolicy = parseRemovalPolicy('artifactBucketRemovalPolicy', props.artifactBucketRemovalPolicy)
         const replayerEFSRemovalPolicy = parseRemovalPolicy('replayerOutputEFSRemovalPolicy', props.replayerOutputEFSRemovalPolicy)

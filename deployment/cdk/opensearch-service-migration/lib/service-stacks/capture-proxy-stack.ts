@@ -5,7 +5,7 @@ import {Construct} from "constructs";
 import {join} from "path";
 import {MigrationServiceCore} from "./migration-service-core";
 import {StringParameter} from "aws-cdk-lib/aws-ssm";
-import {StreamingSourceType} from "../streaming-source-type";
+import {StreamingSourceType} from "../models/streaming-source-type";
 import {createMSKProducerIAMPolicies} from "../common-utilities";
 
 

@@ -12,6 +12,14 @@
     "captureProxyESServiceEnabled": true,
     "fetchMigrationEnabled": true,
     "otelCollectorEnabled": true,
-    "sourceClusterEndpoint": "https://capture-proxy-es.migration.dev.local:19200"
+    "sourceClusterEndpoint": "https://capture-proxy-es.migration.dev.local:19200",
+    "sourceAuthType": "BASIC_AUTH",
+    "sourceAuthUsername": "admin",
+    "sourceAuthSecret": "demo-source-secret-dev-default",
+    "sourceProviderType": "SELF_MANAGED",
+    "targetAuthType": "BASIC_AUTH",
+    "targetAuthUsername": "admin",
+    "targetAuthSecret": "demo-user-secret-dev-default",
+    "targetProviderType": "OPENSEARCH_SERVICE"
   }
 }

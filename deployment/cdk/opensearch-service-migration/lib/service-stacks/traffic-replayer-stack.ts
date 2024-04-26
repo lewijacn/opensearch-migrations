@@ -11,7 +11,7 @@ import {
     createOpenSearchIAMAccessPolicy,
     createOpenSearchServerlessIAMAccessPolicy
 } from "../common-utilities";
-import {StreamingSourceType} from "../streaming-source-type";
+import {StreamingSourceType} from "../models/streaming-source-type";
 
 
 export interface TrafficReplayerProps extends StackPropsExt {

@@ -7,4 +7,3 @@ export * from './network-stack';
 export * from './opensearch-domain-stack';
 export * from './service-stacks';
 export * from './stack-composer';
-export * from './streaming-source-type';

@@ -16,10 +16,15 @@ import {ElasticsearchStack} from "./service-stacks/elasticsearch-stack";
 import {KafkaStack} from "./service-stacks/kafka-stack";
 import {Application} from "@aws-cdk/aws-servicecatalogappregistry-alpha";
 import {OpenSearchContainerStack} from "./service-stacks/opensearch-container-stack";
-import {determineStreamingSourceType, StreamingSourceType} from "./streaming-source-type";
+import {determineStreamingSourceType, StreamingSourceType} from "./models/streaming-source-type";
 import {parseRemovalPolicy, validateFargateCpuArch} from "./common-utilities";
 import {ReindexFromSnapshotStack} from "./service-stacks/reindex-from-snapshot-stack";
 
+
+// TODO handle having to provide basic auth for both domain and target cluster options...
+// TODO validations around improper combinations, AOS and SELF_MANAGED
+// TODO multiple replay scenario
+// TODO allow both proxy and non-proxy source endpoint
 export interface StackPropsExt extends StackProps {
     readonly stage: string,
     readonly defaultDeployId: string,
@@ -168,24 +173,41 @@ export class StackComposer {
         const captureProxyESServiceEnabled = this.getContextForType('captureProxyESServiceEnabled', 'boolean', defaultValues, contextJSON)
         const captureProxyESExtraArgs = this.getContextForType('captureProxyESExtraArgs', 'string', defaultValues, contextJSON)
         const migrationConsoleServiceEnabled = this.getContextForType('migrationConsoleServiceEnabled', 'boolean', defaultValues, contextJSON)
-        const trafficReplayerServiceEnabled = this.getContextForType('trafficReplayerServiceEnabled', 'boolean', defaultValues, contextJSON)
-        const trafficReplayerEnableClusterFGACAuth = this.getContextForType('trafficReplayerEnableClusterFGACAuth', 'boolean', defaultValues, contextJSON)
-        const trafficReplayerGroupId = this.getContextForType('trafficReplayerGroupId', 'string', defaultValues, contextJSON)
-        const trafficReplayerUserAgentSuffix = this.getContextForType('trafficReplayerUserAgentSuffix', 'string', defaultValues, contextJSON)
-        const trafficReplayerExtraArgs = this.getContextForType('trafficReplayerExtraArgs', 'string', defaultValues, contextJSON)
         const captureProxyServiceEnabled = this.getContextForType('captureProxyServiceEnabled', 'boolean', defaultValues, contextJSON)
         const captureProxySourceEndpoint = this.getContextForType('captureProxySourceEndpoint', 'string', defaultValues, contextJSON)
         const captureProxyExtraArgs = this.getContextForType('captureProxyExtraArgs', 'string', defaultValues, contextJSON)
         const elasticsearchServiceEnabled = this.getContextForType('elasticsearchServiceEnabled', 'boolean', defaultValues, contextJSON)
         const kafkaBrokerServiceEnabled = this.getContextForType('kafkaBrokerServiceEnabled', 'boolean', defaultValues, contextJSON)
-        const targetClusterEndpoint = this.getContextForType('targetClusterEndpoint', 'string', defaultValues, contextJSON)
         const fetchMigrationEnabled = this.getContextForType('fetchMigrationEnabled', 'boolean', defaultValues, contextJSON)
         const dpPipelineTemplatePath = this.getContextForType('dpPipelineTemplatePath', 'string', defaultValues, contextJSON)
-        const sourceClusterEndpoint = this.getContextForType('sourceClusterEndpoint', 'string', defaultValues, contextJSON)
         const osContainerServiceEnabled = this.getContextForType('osContainerServiceEnabled', 'boolean', defaultValues, contextJSON)
         const otelCollectorEnabled = this.getContextForType('otelCollectorEnabled', 'boolean', defaultValues, contextJSON)
+
+        // Traffic Replayer Options
+        const trafficReplayerServiceEnabled = this.getContextForType('trafficReplayerServiceEnabled', 'boolean', defaultValues, contextJSON)
+        const trafficReplayerEnableClusterFGACAuth = this.getContextForType('trafficReplayerEnableClusterFGACAuth', 'boolean', defaultValues, contextJSON)
+        const trafficReplayerGroupId = this.getContextForType('trafficReplayerGroupId', 'string', defaultValues, contextJSON)
+        const trafficReplayerUserAgentSuffix = this.getContextForType('trafficReplayerUserAgentSuffix', 'string', defaultValues, contextJSON)
+        const trafficReplayerExtraArgs = this.getContextForType('trafficReplayerExtraArgs', 'string', defaultValues, contextJSON)
+
+        // Reindex From Snapshot Options
         const reindexFromSnapshotServiceEnabled = this.getContextForType('reindexFromSnapshotServiceEnabled', 'boolean', defaultValues, contextJSON)
         const reindexFromSnapshotExtraArgs = this.getContextForType('reindexFromSnapshotExtraArgs', 'string', defaultValues, contextJSON)
+
+        // Target Cluster Options
+        const targetClusterEndpoint = this.getContextForType('targetClusterEndpoint', 'string', defaultValues, contextJSON)
+        const targetAuthType = this.getContextForType('targetAuthType', 'string', defaultValues, contextJSON)
+        const targetAuthUsername = this.getContextForType('targetAuthUsername', 'string', defaultValues, contextJSON)
+        const targetAuthSecret = this.getContextForType('targetAuthSecret', 'string', defaultValues, contextJSON)
+        const targetProviderType = this.getContextForType('targetProviderType', 'string', defaultValues, contextJSON)
+
+        // Source Cluster Options
+        const sourceClusterEndpoint = this.getContextForType('sourceClusterEndpoint', 'string', defaultValues, contextJSON)
+        const sourceAuthType = this.getContextForType('sourceAuthType', 'string', defaultValues, contextJSON)
+        const sourceAuthUsername = this.getContextForType('sourceAuthUsername', 'string', defaultValues, contextJSON)
+        const sourceAuthSecret = this.getContextForType('sourceAuthSecret', 'string', defaultValues, contextJSON)
+        const sourceProviderType = this.getContextForType('sourceProviderType', 'string', defaultValues, contextJSON)
+
 
         const requiredFields: { [key: string]: any; } = {"stage":stage, "domainName":domainName}
         for (let key in requiredFields) {
@@ -307,6 +329,15 @@ export class StackComposer {
                 mskBrokerNodeCount: mskBrokerNodeCount,
                 mskSubnetIds: mskSubnetIds,
                 mskAZCount: mskAZCount,
+                sourceClusterEndpoint: sourceClusterEndpoint,
+                sourceAuthType: sourceAuthType,
+                sourceAuthUsername: sourceAuthUsername,
+                sourceAuthSecret: sourceAuthSecret,
+                sourceProviderType: sourceProviderType,
+                targetAuthType: targetAuthType,
+                targetAuthUsername: targetAuthUsername,
+                targetAuthSecret: targetAuthSecret,
+                targetProviderType: targetProviderType,
                 replayerOutputEFSRemovalPolicy: replayerOutputEFSRemovalPolicy,
                 artifactBucketRemovalPolicy: artifactBucketRemovalPolicy,
                 stackName: `OSMigrations-${stage}-${region}-MigrationInfra`,
