@@ -113,7 +113,7 @@ export class MigrationServiceCore extends Stack {
             serviceImage = ContainerImage.fromDockerImageAsset(new DockerImageAsset(this, "ServiceImage", {
                 directory: props.dockerDirectoryPath,
                 buildArgs: props.dockerBuildArgs,
-                //platform: Platform.LINUX_ARM64,
+                platform: props.cpuArchitecture == CpuArchitecture.X86_64 ? Platform.LINUX_AMD64 : Platform.LINUX_ARM64,
                 // File path relative to above directory path
                 file: props.dockerFilePath
             }))
