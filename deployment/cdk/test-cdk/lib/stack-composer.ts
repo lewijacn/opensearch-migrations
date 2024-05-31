@@ -21,13 +21,16 @@ export class StackComposer {
 
     constructor(scope: Construct, props: StackComposerProps) {
 
+        const stage = "test"
+
         let otelStack
         otelStack = new OtelStack(scope, "otel", {
-            stackName: `OSMigrations-test-Otel`,
+            stackName: `OSMigrations-${stage}-Otel`,
             description: "This stack contains resources for a testing mock Elasticsearch single node cluster ECS service",
-            stage: "test",
+            stage: stage,
             defaultDeployId: "default",
-            fargateCpuArch: CpuArchitecture.X86_64,
+            //fargateCpuArch: CpuArchitecture.ARM64,
+            //fargateCpuArch: CpuArchitecture.X86_64,
             env: props.env
         })
         this.stacks.push(otelStack)

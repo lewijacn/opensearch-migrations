@@ -17,12 +17,12 @@ export class OtelStack extends MigrationServiceCore {
         super(scope, id, props)
 
         const vpc = Vpc.fromLookup(this, 'domainVPC', {
-            vpcId: "vpc-0a7dfab75dc83a332",
+            vpcId: "vpc-07d3e089b8e9139e4",
         });
 
         const ecsCluster = new Cluster(this, 'testECSCluster', {
             vpc: vpc,
-            clusterName: `migration-test-ecs-cluster`
+            clusterName: `migration-${props.stage}-ecs-cluster`
         })
 
 
@@ -30,7 +30,7 @@ export class OtelStack extends MigrationServiceCore {
             vpc: vpc,
             serviceName: "otel",
             dockerDirectoryPath: join(__dirname, "../../../../", "TrafficCapture/dockerSolution/src/main/docker/otelCollector"),
-            securityGroups: [SecurityGroup.fromSecurityGroupId(this, "defaultSG", "sg-0bb022d96f6908621")],
+            securityGroups: [SecurityGroup.fromSecurityGroupId(this, "defaultSG", "sg-07ff03367fb0c372f")],
             cpuArchitecture: props.fargateCpuArch,
             taskCpuUnits: 512,
             taskMemoryLimitMiB: 2048,

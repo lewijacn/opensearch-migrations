@@ -86,7 +86,7 @@ export class MigrationServiceCore extends Stack {
         }
 
         const ecsCluster = Cluster.fromClusterAttributes(this, 'ecsCluster', {
-            clusterName: `migration-test-ecs-cluster`,
+            clusterName: `migration-${props.stage}-ecs-cluster`,
             vpc: props.vpc
         })
 
