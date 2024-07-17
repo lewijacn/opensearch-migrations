@@ -47,7 +47,7 @@ def migration_cdk_context = """
         "kafkaBrokerServiceEnabled": true,
         "trafficReplayerServiceEnabled": false,
         "migrationConsoleEnableOSI": true,
-        "migrationAPIEnabled": true
+        "migrationAPIEnabled": true,
         "sourceClusterEndpoint": "<SOURCE_CLUSTER_ENDPOINT>"
       }
     }
