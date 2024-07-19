@@ -48,6 +48,7 @@ def migration_cdk_context = """
         "trafficReplayerServiceEnabled": false,
         "migrationConsoleEnableOSI": true,
         "migrationAPIEnabled": true,
+        "reindexFromSnapshotServiceEnabled": true,
         "sourceClusterEndpoint": "<SOURCE_CLUSTER_ENDPOINT>"
       }
     }
