@@ -22,7 +22,6 @@ import {KafkaYaml} from "./migration-services-yaml";
 export interface MigrationStackProps extends StackPropsExt {
     readonly vpc: IVpc,
     readonly streamingSourceType: StreamingSourceType,
-    // Future support needed to allow importing an existing MSK cluster
     readonly mskImportARN?: string,
     readonly mskBrokersPerAZCount?: number,
     readonly mskSubnetIds?: string[],
@@ -92,47 +91,55 @@ export class MigrationAssistanceStack extends Stack {
     }
 
     createMSKResources(props: MigrationStackProps, streamingSecurityGroup: SecurityGroup) {
-        // Create MSK cluster config
-        const mskClusterConfig = new CfnConfiguration(this, "migrationMSKClusterConfig", {
-            name: `migration-msk-config-${props.stage}`,
-            serverProperties: "auto.create.topics.enable=true"
-        })
+        let mskCluster
+        let brokerEndpoints
+        if (props.mskImportARN) {
+            mskCluster = MSKCluster.fromClusterArn(this, 'mskCluster', props.mskImportARN)
+            brokerEndpoints = ''
+        } else {
+            // Create MSK cluster config
+            const mskClusterConfig = new CfnConfiguration(this, "migrationMSKClusterConfig", {
+                name: `migration-msk-config-${props.stage}`,
+                serverProperties: "auto.create.topics.enable=true"
+            })
 
-        const mskLogGroup = new LogGroup(this, 'migrationMSKBrokerLogGroup',  {
-            retention: RetentionDays.THREE_MONTHS
-        });
+            const mskLogGroup = new LogGroup(this, 'migrationMSKBrokerLogGroup', {
+                retention: RetentionDays.THREE_MONTHS
+            });
 
-        const brokerNodesPerAZ = props.mskBrokersPerAZCount ? props.mskBrokersPerAZCount : 1
-        const mskAZs = props.mskAZCount ? props.mskAZCount : 2
-        const subnets = this.validateAndReturnVPCSubnetsForMSK(props.vpc, brokerNodesPerAZ * mskAZs, mskAZs, props.mskSubnetIds)
+            const brokerNodesPerAZ = props.mskBrokersPerAZCount ? props.mskBrokersPerAZCount : 1
+            const mskAZs = props.mskAZCount ? props.mskAZCount : 2
+            const subnets = this.validateAndReturnVPCSubnetsForMSK(props.vpc, brokerNodesPerAZ * mskAZs, mskAZs, props.mskSubnetIds)
 
-        const mskCluster = new MSKCluster(this, 'mskCluster', {
-            clusterName: `migration-msk-cluster-${props.stage}`,
-            kafkaVersion: KafkaVersion.V3_6_0,
-            numberOfBrokerNodes: brokerNodesPerAZ,
-            vpc: props.vpc,
-            vpcSubnets: subnets,
-            securityGroups: [streamingSecurityGroup],
-            configurationInfo: {
-                arn: mskClusterConfig.attrArn,
-                // Current limitation of alpha construct, would like to get latest revision dynamically
-                revision: 1
-            },
-            encryptionInTransit: {
-                clientBroker: ClientBrokerEncryption.TLS,
-                enableInCluster: true
-            },
-            clientAuthentication: ClientAuthentication.sasl({
-                iam: true,
-            }),
-            logging: {
-                cloudwatchLogGroup: mskLogGroup
-            },
-            monitoring: {
-                clusterMonitoringLevel: ClusterMonitoringLevel.DEFAULT
-            },
-            removalPolicy: RemovalPolicy.DESTROY
-        });
+            mskCluster = new MSKCluster(this, 'mskCluster', {
+                clusterName: `migration-msk-cluster-${props.stage}`,
+                kafkaVersion: KafkaVersion.V3_6_0,
+                numberOfBrokerNodes: brokerNodesPerAZ,
+                vpc: props.vpc,
+                vpcSubnets: subnets,
+                securityGroups: [streamingSecurityGroup],
+                configurationInfo: {
+                    arn: mskClusterConfig.attrArn,
+                    // Current limitation of alpha construct, would like to get latest revision dynamically
+                    revision: 1
+                },
+                encryptionInTransit: {
+                    clientBroker: ClientBrokerEncryption.TLS,
+                    enableInCluster: true
+                },
+                clientAuthentication: ClientAuthentication.sasl({
+                    iam: true,
+                }),
+                logging: {
+                    cloudwatchLogGroup: mskLogGroup
+                },
+                monitoring: {
+                    clusterMonitoringLevel: ClusterMonitoringLevel.DEFAULT
+                },
+                removalPolicy: RemovalPolicy.DESTROY
+            });
+            brokerEndpoints = mskCluster.bootstrapBrokersSaslIam
+        }
 
         createMigrationStringParameter(this, mskCluster.clusterArn, {
             ...props,
@@ -142,14 +149,14 @@ export class MigrationAssistanceStack extends Stack {
             ...props,
             parameter: MigrationSSMParameter.MSK_CLUSTER_NAME
         });
-        createMigrationStringParameter(this, mskCluster.bootstrapBrokersSaslIam, {
+        createMigrationStringParameter(this, brokerEndpoints, {
             ...props,
             parameter: MigrationSSMParameter.KAFKA_BROKERS
         });
 
         this.kafkaYaml = new KafkaYaml();
         this.kafkaYaml.msk = '';
-        this.kafkaYaml.broker_endpoints = mskCluster.bootstrapBrokersSaslIam;
+        this.kafkaYaml.broker_endpoints = brokerEndpoints;
 
     }
 
