@@ -1,5 +1,13 @@
 name: "Sanitize Github Repo Details"
 
+inputs:
+  branch_name:
+    description: "Optional override for branch name"
+    required: false
+  repo_base:
+    description: "Optional override for repo base"
+    required: false
+
 outputs:
   branch_name:
     description: "Sanitized branch name"
