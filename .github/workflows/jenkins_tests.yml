@@ -19,14 +19,7 @@ jobs:
     uses: ./.github/workflows/require-approval.yml
 
   sanitize-input:
-    runs-on: ubuntu-latest
-    outputs:
-      branch_name: ${{ steps.sanitize.outputs.branch_name }}
-      pr_repo_url: ${{ steps.sanitize.outputs.pr_repo_url }}
-    steps:
-      - name: Sanitize
-        id: sanitize
-        uses: ./.github/actions/sanitize-repo-details
+    uses: ./.github/workflows/sanitize-repo-details.yml
 
   full-es68-e2e-aws-test:
     needs: [get-require-approval, sanitize-input]
