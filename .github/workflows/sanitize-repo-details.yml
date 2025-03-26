@@ -1,7 +1,7 @@
+---
 name: Sanitize Github Repo Details
-
 on:
-  workflow_dispatch:
+  workflow_call:
     outputs:
       branch_name:
         description: "Branch name"
