@@ -1,4 +1,4 @@
-# OpenSearch Migration Assistant3
+# OpenSearch Migration Assistant4
 
 ## Table of Contents
 1. [Overview](#overview)
