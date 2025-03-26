@@ -20,8 +20,13 @@ jobs:
 
   sanitize-input:
     runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.sanitize.outputs.branch_name }}
+      pr_repo_url: ${{ steps.sanitize.outputs.pr_repo_url }}
     steps:
-      - uses: ./.github/actions/sanitize_repo_details
+      - name: Sanitize
+        id: sanitize
+        uses: ./.github/actions/sanitize-repo-details
 
   full-es68-e2e-aws-test:
     needs: [get-require-approval, sanitize-input]
