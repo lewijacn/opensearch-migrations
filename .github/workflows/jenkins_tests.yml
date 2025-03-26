@@ -19,7 +19,9 @@ jobs:
     uses: ./.github/workflows/require-approval.yml
 
   sanitize-input:
-    uses: ./.github/actions/sanitize_repo_details.yml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/sanitize_repo_details
 
   full-es68-e2e-aws-test:
     needs: [get-require-approval, sanitize-input]
